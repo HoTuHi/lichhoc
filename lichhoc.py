@@ -8,29 +8,42 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+from bs4 import BeautifulSoup
+import codecs
+
+
+# element
+subject = {"class": "s15c47abe", "colspan": "6"}
+room = {"class": "s8b00c82e", "colspan": "6"}
+start = {"class": "s8b00c82e", "style": "height:20px;width:42px;"}
+onweek = {"class": "s83bee661", "colspan": "7"}
+onday = {"class": "s8b00c82e", "colspan": "2"}
+
+req = codecs.open("Report.html", 'r', 'utf-8')
+soup = BeautifulSoup(req.read(), "html5lib")
+x = soup.findAll('td')[12]
+
+# _______________________
+# find all class monhoc
+# _______________________
+
+all_subject = soup.find_all('td', subject)
+all_room = soup.find_all('td', room)
+all_start = soup.find_all('td', start)
+all_week = soup.find_all('td', onweek)
+all_day = soup.find_all('td', onday)
+
+# _______________________
 
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-f = open("demofile.txt", "w")
-xl = pd.ExcelFile('Report.xlsx')
 x = dt.datetime.now()
-df = pd.read_excel(xl, 0, header=None)
-'''
-    iloc[, 0] : mã MH
-    iloc[, 5] : tên môn học
-    iloc[, 11]: nhóm
-    iloc[, 25]: thứ
-    iloc[, 27]: tiết BĐ
-    iloc[, 33]: phòng
-    iloc[, 39]: thời gian học( tuan )
-    cột bắt đầu từ 2- 18
-    '''
 print(x)
-thgian1 = ['7:20:00', '9:20:00',
-           '12:20:00', '14:20:00', '16:20:00', '19:20:00']
-thgian2 = ['7:25:00', '9:25:00',
-           '12:25:00', '14:25:00', '16:25:00', '19:25:00']
+thgian1 = ['6:30:00', '8:30:00',
+           '11:30:00', '13:30:00', '15:30:00', '17:30:00']
+thgian2 = ['8:30:00', '11:30:00',
+           '13:30:00', '15:30:00', '17:30:00', '19:30:00']
 
 
 def mess():
@@ -63,24 +76,22 @@ def mess():
         thu = 8
     """ thu 2 la ngay dau buoi, cn la ngay 0,ptit k hoc chu nhat,
         công thức là cộng 1 thôi hé """
-    # tuan = int(x.strftime("%W")) - 12
-    # gio = x.strftime("%H:%M")
     # tuan bat dau la tuan 13 cua mam
-    for i in range(2, 19):
-        for j in range(0, len(df.loc[i, 39])):
-            if df.loc[i, 39][j] != '-':
+    for i in range(0,len(all_week)):
+        for j in range(0, len(all_week[i].text)):
+            if all_week[i].text[j] != '-':
                 # thời gian
-                tgian1 = thgian1[int(int(df.iloc[i, 27]) / 2)]
-                tgian2 = thgian2[int(int(df.iloc[i, 27]) / 2)]
+                tgian1 = thgian1[int(int(all_start[i].text) / 2)]
+                tgian2 = thgian2[int(int(all_start[i].text) / 2)]
                 # ngày tháng năm
-                dung = x + dt.timedelta(weeks=j - 1,
-                                        days=int(df.iloc[i, 25]) - 3)
+                dung = x + dt.timedelta(weeks=j +3,
+                                        days=int(all_day[i].text) - 2)
                 day = dung.strftime("%Y-%m-%d")
                 # lời nhắn
                 text = day + " " + str(tgian1) + " học " + \
-                    df.iloc[i, 5] + " tại " + df.iloc[i, 33]
+                    all_subject[i].text + " tại " + all_room[i].text
                 event = {
-                    'summary': df.iloc[i, 5],
+                    'summary': all_subject[i].text,
                     'location': 'home',
                     'description': text,
                     'start': {
@@ -98,7 +109,7 @@ def mess():
                 event = service.events().insert(calendarId='primary', body=event).execute()
                 print('Event created: %s' % (event.get('htmlLink')))
                 print(text)
-                f.write(json.dumps(event))
+                # f.write(json.dumps(event))
 
 
 if __name__ == '__main__':
