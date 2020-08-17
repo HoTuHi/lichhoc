@@ -35,6 +35,8 @@ thgian2 = ['8:30:00', '11:30:00',
 
 
 def mess():
+    # tuanoffset = so tuan nua di hoc -_-
+    tuanoffset = 3
     thu = int(x.strftime("%w")) + 1
     if thu == 1:
         thu = 8
@@ -48,8 +50,8 @@ def mess():
                 tgian1 = thgian1[int(int(all_start[i].text) / 2)]
                 tgian2 = thgian2[int(int(all_start[i].text) / 2)]
                 # ngày tháng năm
-                dung = x + dt.timedelta(weeks=j +3,
-                                        days=int(all_day[i].text) - 2)
+                dung = x + dt.timedelta(weeks=j +tuanoffset,
+                                        days=int(all_day[i].text) - thu)
                 day = dung.strftime("%Y-%m-%d")
                 # lời nhắn
                 text = day + " " + str(tgian1) + " học " + \
